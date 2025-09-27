@@ -69,6 +69,20 @@ public class UserJpaResource {
 	
 	
 	
+
+	@GetMapping("/jpa/users/{id}/posts")
+	public List<Post> retrievePostsForUser(@PathVariable int id){
+Optional<User> user =  repository.findById(id);
+		
+		if(user.isEmpty()) 
+			throw new UserNotFoundException("Id:"+id);
+		
+			return user.get().getPosts();
+	}
+	
+	
+	
+	
 	//Post / users
 	
 	@PostMapping("/jpa/users")
