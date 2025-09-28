@@ -8,6 +8,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.in28minutes.rest.webservices.restful_web_services.jpa.PostRepository;
 import com.in28minutes.rest.webservices.restful_web_services.jpa.UserRepository;
 
 import jakarta.validation.Valid;
@@ -29,9 +31,15 @@ public class UserJpaResource {
 	
 	private UserRepository repository;
 	
-	public UserJpaResource(UserDaoService service, UserRepository repository) {
+	private PostRepository postRepository;
+
+
+
+	
+	public UserJpaResource(UserDaoService service, UserRepository repository, PostRepository postRepository) {
 		
 		this.repository = repository;
+		this.postRepository = postRepository;
 	}
 	@GetMapping("/jpa/users")
 	public List<User>retrieveAllUsers(){
@@ -95,5 +103,28 @@ Optional<User> user =  repository.findById(id);
 				.toUri();
 		return ResponseEntity.created(location).build();
 		
+	}
+	
+	
+	
+	@PostMapping("/jpa/users/{id}/posts")
+	public ResponseEntity<Object> createPostsForUser(@PathVariable int id, @Valid   @RequestBody Post post ){
+Optional<User> user =  repository.findById(id);
+		
+		if(user.isEmpty()) 
+			throw new UserNotFoundException("Id:"+id);
+		
+		post.setUser(user.get());
+		
+     
+		Post savedPost = postRepository.save(post);
+
+	
+	
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+				.path("/{id}") 
+				.buildAndExpand(savedPost.getId())
+				.toUri();
+		return ResponseEntity.created(location).build();	
 	}
 }
